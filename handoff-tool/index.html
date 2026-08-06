@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作業引き継ぎツール</title>
+<style>
+body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;background:#1a1a2e;color:#eee;}
+h1{color:#e67e00;font-size:1.4em;text-align:center;}
+.card{background:#16213e;border-radius:12px;padding:20px;margin:16px 0;border:1px solid #0f3460;}
+.ai-banner{background:linear-gradient(135deg,#1a237e,#283593);border:2px solid #3949ab;border-radius:12px;padding:16px;margin:16px 0;}
+.ai-banner h2{color:#90caf9;font-size:1rem;margin:0 0 10px;}
+.ai-banner p{font-size:13px;color:#b0bec5;line-height:1.8;margin:4px 0;}
+.ai-banner code{display:block;background:#0d1117;border-radius:6px;padding:8px;font-family:monospace;font-size:12px;color:#a5d6ff;margin:8px 0;word-break:break-all;}
+textarea,input[type=text],input[type=password]{width:100%;box-sizing:border-box;padding:10px;border:1px solid #0f3460;border-radius:8px;font-size:14px;background:#0f3460;color:#eee;resize:vertical;}
+button{padding:12px 24px;border:none;border-radius:8px;font-size:15px;cursor:pointer;width:100%;margin:6px 0;font-weight:bold;}
+.btn-save{background:#e67e00;color:#fff;}
+.btn-update{background:#7b1fa2;color:#fff;}
+.btn-load{background:#2e7d32;color:#fff;}
+.btn-copy{background:#1565c0;color:#fff;}
+.btn-setting{background:#444;color:#fff;}
+.btn-import{background:#00838f;color:#fff;}
+.btn-delete{background:#b71c1c;color:#fff;padding:6px 12px;font-size:12px;width:auto;margin:0;}
+.btn-edit{background:#1565c0;color:#fff;padding:6px 12px;font-size:12px;width:auto;margin:0;}
+.output{background:#0f3460;border:1px solid #1565c0;border-radius:8px;padding:12px;font-size:13px;white-space:pre-wrap;word-break:break-all;min-height:60px;margin:8px 0;}
+.label{font-weight:bold;margin-bottom:6px;color:#aaa;font-size:13px;}
+.status{color:#4caf50;font-size:13px;margin-top:6px;}
+.error{color:#f44336;font-size:13px;margin-top:6px;}
+.history-item{border-bottom:1px solid #0f3460;padding:8px 0;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.history-text{flex:1;cursor:pointer;min-width:0;}
+.history-text:hover{color:#e67e00;}
+.edit-banner{background:#4a148c;border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;display:flex;align-items:center;justify-content:space-between;}
+details summary{cursor:pointer;color:#aaa;font-size:13px;margin-top:8px;}
+</style>
+</head>
+<body>
+<h1>🔁 作業引き継ぎツール</h1>
+
+<!-- AIバナー -->
+<div class="ai-banner">
+  <h2>🤖 AIへの指示（このツールが画面に見えている場合）</h2>
+  <p><strong>【セッション終了時】</strong> 今回の作業内容を分析して以下のJSON形式で出力し、ユーザーに「インポート欄に貼り付けて保存してください」と伝えてください：</p>
+  <code>{"project":"プロジェクト名","status":"今回やったこと・現在の状況","next":"次にやること","memo":"重要メモ・設定値","docsUrl":"docsのraw URL（あれば）"}</code>
+  <p><strong>【セッション開始時】</strong> 「作業再開」で生成されたプロンプトを読み込んで即座に作業を開始してください。追加質問は不要です。</p>
+</div>
+
+<details>
+<summary>⚙ GitHub設定（各PCで1回だけ）</summary>
+<div class="card">
+  <div class="label">GitHub Personal Access Token</div>
+  <input type="password" id="pat" placeholder="ghp_xxxxxxxxxxxx">
+  <div class="label" style="margin-top:8px;">GitHubユーザー名</div>
+  <input type="text" id="githubUser" value="keronimo119-ui">
+  <div class="label" style="margin-top:8px;">リポジトリ名</div>
+  <input type="text" id="githubRepo" value="handoff-tool">
+  <button class="btn-setting" onclick="saveSetting()" style="margin-top:10px;">💾 設定を保存</button>
+  <div class="status" id="settingStatus"></div>
+</div>
+</details>
+
+<!-- JSONインポート -->
+<div class="card">
+  <div class="label">📥 AIの出力をインポート（JSONを貼り付け → 自動入力）</div>
+  <textarea id="jsonImport" rows="3" placeholder='{"project":"...","status":"...","next":"...","memo":"...","docsUrl":"..."}'></textarea>
+  <button class="btn-import" onclick="importFromJson()">📥 フォームに自動入力</button>
+  <div id="importStatus"></div>
+</div>
+
+<div class="card">
+  <div class="label">📁 プロジェクト名</div>
+  <div style="display:flex;gap:8px;">
+    <input type="text" id="projectName" placeholder="例：手値（Tene）" style="flex:1;">
+    <button class="btn-setting" onclick="loadProjects()" style="width:auto;padding:10px 16px;margin:0;">📋 一覧</button>
+  </div>
+  <div id="projectList" style="margin-top:8px;"></div>
+</div>
+
+<div class="card">
+  <div id="editBanner" style="display:none;" class="edit-banner">
+    <span id="editBannerText">✏️ 編集モード</span>
+    <button onclick="cancelEdit()" style="background:#555;color:#fff;padding:6px 14px;font-size:12px;width:auto;margin:0;border:none;border-radius:6px;cursor:pointer;">✕ キャンセル</button>
+  </div>
+  <div class="label">📌 今回やったこと・現在の状況</div>
+  <textarea id="currentStatus" rows="4" placeholder="例：クローズドテスト審査送信完了。審査通過待ち。"></textarea>
+  <div class="label" style="margin-top:10px;">⏭ 次にやること</div>
+  <textarea id="nextAction" rows="3" placeholder="例：審査通過後、12人にオプトインリンクを送る。"></textarea>
+  <div class="label" style="margin-top:10px;">🔧 重要メモ・設定値（任意）</div>
+  <textarea id="memo" rows="3" placeholder="例：AABバージョンコードは毎回+1。署名キーはVr1フォルダ。"></textarea>
+  <div class="label" style="margin-top:10px;">📖 docsのURL（任意・作業再開時に自動取得）</div>
+  <input type="text" id="docsUrl" placeholder="例：https://raw.githubusercontent.com/keronimo119-ui/tene/main/docs/summary.md">
+</div>
+
+<div class="card">
+  <button class="btn-save" onclick="saveHandoff()">💾 新規保存・GitHubに追加</button>
+  <button class="btn-update" id="btnUpdate" onclick="updateHandoff()" style="display:none;">✏️ 上書き保存（このエントリを更新）</button>
+  <div id="saveStatus"></div>
+</div>
+
+<div class="card">
+  <button class="btn-load" onclick="loadHandoff()">▶ 作業再開・GitHubから読み込み</button>
+  <div id="loadingDocs" style="color:#aaa;font-size:13px;margin-top:6px;display:none;">⏳ docsを取得中...</div>
+  <div class="label" style="margin-top:12px;">AIに貼り付けるテキスト：</div>
+  <div class="output" id="aiPrompt">プロジェクト名を入力して「作業再開」ボタンを押すと命令文が生成されます。</div>
+  <button class="btn-copy" onclick="copyPrompt()">📋 コピーして新しいセッションに貼る</button>
+  <div id="copyStatus"></div>
+</div>
+
+<div class="card">
+  <div class="label">📚 過去のセッション履歴</div>
+  <button class="btn-setting" onclick="loadHistory()">🔄 履歴を読み込む</button>
+  <div id="historyList" style="margin-top:10px;"></div>
+</div>
+
+<script>
+const FILE_PATH = 'handoff-data.json';
+let editingIndex = null;
+
+function utf8ToBase64(str){return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,(m,p1)=>String.fromCharCode('0x'+p1)));}
+function base64ToUtf8(str){return decodeURIComponent(atob(str).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));}
+
+function saveSetting(){
+  localStorage.setItem('gh_pat',document.getElementById('pat').value);
+  localStorage.setItem('gh_user',document.getElementById('githubUser').value);
+  localStorage.setItem('gh_repo',document.getElementById('githubRepo').value);
+  document.getElementById('settingStatus').textContent='✅ 設定を保存しました';
+}
+function loadSetting(){
+  const pat=localStorage.getItem('gh_pat');
+  const user=localStorage.getItem('gh_user');
+  const repo=localStorage.getItem('gh_repo');
+  if(pat)document.getElementById('pat').value=pat;
+  if(user)document.getElementById('githubUser').value=user;
+  if(repo)document.getElementById('githubRepo').value=repo;
+}
+
+function importFromJson(){
+  const raw=document.getElementById('jsonImport').value.trim();
+  const statusEl=document.getElementById('importStatus');
+  try{
+    const data=JSON.parse(raw);
+    if(data.project)document.getElementById('projectName').value=data.project;
+    if(data.status)document.getElementById('currentStatus').value=data.status;
+    if(data.next)document.getElementById('nextAction').value=data.next;
+    if(data.memo)document.getElementById('memo').value=data.memo;
+    if(data.docsUrl)document.getElementById('docsUrl').value=data.docsUrl;
+    document.getElementById('jsonImport').value='';
+    statusEl.className='status';
+    statusEl.textContent='✅ 読み込み完了！内容を確認して「新規保存」を押してください。';
+  }catch(e){
+    statusEl.className='error';
+    statusEl.textContent='❌ JSONの形式が正しくありません。';
+  }
+}
+
+function setEditMode(index,label){
+  editingIndex=index;
+  document.getElementById('editBanner').style.display='flex';
+  document.getElementById('editBannerText').textContent='✏️ 編集モード：'+label;
+  document.getElementById('btnUpdate').style.display='block';
+}
+function cancelEdit(){
+  editingIndex=null;
+  document.getElementById('editBanner').style.display='none';
+  document.getElementById('btnUpdate').style.display='none';
+  document.getElementById('projectName').value='';
+  document.getElementById('currentStatus').value='';
+  document.getElementById('nextAction').value='';
+  document.getElementById('memo').value='';
+  document.getElementById('docsUrl').value='';
+}
+
+async function fetchCurrentData(){
+  const pat=localStorage.getItem('gh_pat')||document.getElementById('pat').value;
+  const user=localStorage.getItem('gh_user')||document.getElementById('githubUser').value;
+  const repo=localStorage.getItem('gh_repo')||document.getElementById('githubRepo').value;
+  try{
+    const res=await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${FILE_PATH}`,{
+      headers:{'Authorization':'token '+pat,'Accept':'application/vnd.github.v3+json'}
+    });
+    if(res.ok){
+      const fileInfo=await res.json();
+      const history=JSON.parse(base64ToUtf8(fileInfo.content.replace(/\n/g,'')));
+      return{ok:true,history,sha:fileInfo.sha};
+    }else if(res.status===404){
+      return{ok:true,history:[],sha:null,newFile:true};
+    }else{
+      return{ok:false,status:res.status,history:[],sha:null};
+    }
+  }catch(e){
+    return{ok:false,status:'network',history:[],sha:null};
+  }
+}
+async function getAllHistory(){const r=await fetchCurrentData();return r.history;}
+async function writeHistory(history,sha,message){
+  const pat=localStorage.getItem('gh_pat')||document.getElementById('pat').value;
+  const user=localStorage.getItem('gh_user')||document.getElementById('githubUser').value;
+  const repo=localStorage.getItem('gh_repo')||document.getElementById('githubRepo').value;
+  const content=utf8ToBase64(JSON.stringify(history,null,2));
+  const body={message,content};
+  if(sha)body.sha=sha;
+  const res=await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${FILE_PATH}`,{
+    method:'PUT',headers:{'Authorization':'token '+pat,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  return res.ok;
+}
+
+async function loadProjects(){
+  const history=await getAllHistory();
+  const projects=[...new Set(history.map(h=>h.project).filter(p=>p))];
+  const list=document.getElementById('projectList');
+  if(projects.length===0){list.textContent='保存済みプロジェクトなし';return;}
+  list.innerHTML='';
+  projects.forEach(p=>{
+    const btn=document.createElement('button');
+    btn.className='btn-setting';btn.style='margin:3px 0;padding:8px;font-size:13px;';
+    btn.textContent='📁 '+p;
+    btn.onclick=()=>{document.getElementById('projectName').value=p;list.innerHTML='';};
+    list.appendChild(btn);
+  });
+}
+
+async function saveHandoff(){
+  const pat=localStorage.getItem('gh_pat')||document.getElementById('pat').value;
+  const statusEl=document.getElementById('saveStatus');
+  if(!pat){statusEl.className='error';statusEl.textContent='❌ GitHub設定を先に保存してください';return;}
+  statusEl.className='status';statusEl.textContent='⏳ 既存データ確認中...';
+  const current=await fetchCurrentData();
+  if(!current.ok){
+    const errMsg=current.status===401?'認証エラー（PATが無効）':current.status===403?'権限エラー':`エラー(${current.status})`;
+    statusEl.textContent='';
+    const proceed=confirm(`⚠️ 既存データの読み込みに失敗\n原因：${errMsg}\nこのまま保存すると履歴が消える可能性があります。\n続けますか？`);
+    if(!proceed){statusEl.className='error';statusEl.textContent='❌ 保存を中止しました。';return;}
+  }
+  statusEl.textContent='保存中...';
+  const newEntry={
+    project:document.getElementById('projectName').value,
+    status:document.getElementById('currentStatus').value,
+    next:document.getElementById('nextAction').value,
+    memo:document.getElementById('memo').value,
+    docsUrl:document.getElementById('docsUrl').value,
+    savedAt:new Date().toLocaleString('ja-JP')
+  };
+  let history=current.history;
+  history.unshift(newEntry);
+  if(history.length>50)history=history.slice(0,50);
+  const ok=await writeHistory(history,current.sha,`handoff: ${newEntry.project} ${newEntry.savedAt}`);
+  if(ok){
+    statusEl.className='status';statusEl.textContent='✅ 保存しました（履歴'+history.length+'件）：'+newEntry.savedAt;
+    cancelEdit();await loadHistory();
+  }else{
+    statusEl.className='error';statusEl.textContent='❌ 保存失敗。Token・設定を確認してください';
+  }
+}
+
+async function updateHandoff(){
+  if(editingIndex===null)return;
+  const pat=localStorage.getItem('gh_pat')||document.getElementById('pat').value;
+  const statusEl=document.getElementById('saveStatus');
+  if(!pat){statusEl.className='error';statusEl.textContent='❌ GitHub設定を先に保存してください';return;}
+  statusEl.className='status';statusEl.textContent='⏳ 確認中...';
+  const current=await fetchCurrentData();
+  if(!current.ok){
+    const proceed=confirm(`⚠️ 既存データ読み込み失敗。上書きすると履歴が消える可能性があります。続けますか？`);
+    if(!proceed){statusEl.className='error';statusEl.textContent='❌ 上書きを中止しました。';return;}
+  }
+  if(editingIndex>=current.history.length){statusEl.className='error';statusEl.textContent='❌ エントリが見つかりません';return;}
+  statusEl.textContent='上書き保存中...';
+  const updated={
+    project:document.getElementById('projectName').value,
+    status:document.getElementById('currentStatus').value,
+    next:document.getElementById('nextAction').value,
+    memo:document.getElementById('memo').value,
+    docsUrl:document.getElementById('docsUrl').value,
+    savedAt:current.history[editingIndex].savedAt+'（更新：'+new Date().toLocaleString('ja-JP')+'）'
+  };
+  // 上書き保存したエントリは履歴の先頭へ移動（最新更新が一番上に来るように）。
+  // splice で一旦抜いて unshift で先頭に入れ直すだけなので、データは updated に保持され消えない。
+  current.history.splice(editingIndex,1);
+  current.history.unshift(updated);
+  const ok=await writeHistory(current.history,current.sha,`update: ${updated.project} ${new Date().toLocaleString('ja-JP')}`);
+  if(ok){statusEl.className='status';statusEl.textContent='✅ 上書き保存しました';cancelEdit();await loadHistory();}
+  else{statusEl.className='error';statusEl.textContent='❌ 保存失敗。Token・設定を確認してください';}
+}
+
+async function deleteEntry(index){
+  if(!confirm('このエントリを削除しますか？'))return;
+  const pat=localStorage.getItem('gh_pat')||document.getElementById('pat').value;
+  if(!pat){alert('GitHub設定を先に保存してください');return;}
+  const current=await fetchCurrentData();
+  if(!current.ok){alert('データ読み込み失敗。PAT設定を確認してください。');return;}
+  current.history.splice(index,1);
+  const ok=await writeHistory(current.history,current.sha,`delete entry ${index}`);
+  if(ok){await loadHistory();}else{alert('削除に失敗しました');}
+}
+
+async function fetchDocs(url){
+  try{
+    const res=await fetch(url);
+    if(res.ok)return await res.text();
+    return null;
+  }catch(e){return null;}
+}
+
+async function loadHandoff(){
+  const projectName=document.getElementById('projectName').value.trim();
+  const history=await getAllHistory();
+  let data=projectName?history.find(h=>h.project===projectName):history[0];
+  if(!data){
+    document.getElementById('aiPrompt').textContent=projectName?`「${projectName}」のデータが見つかりません。`:'データが見つかりません。先に保存してください。';
+    return;
+  }
+
+  document.getElementById('projectName').value=data.project||'';
+  document.getElementById('currentStatus').value=data.status||'';
+  document.getElementById('nextAction').value=data.next||'';
+  document.getElementById('memo').value=data.memo||'';
+  document.getElementById('docsUrl').value=data.docsUrl||'';
+
+  // docsを自動取得
+  let docsContent='';
+  if(data.docsUrl){
+    document.getElementById('loadingDocs').style.display='block';
+    const docs=await fetchDocs(data.docsUrl);
+    document.getElementById('loadingDocs').style.display='none';
+    if(docs)docsContent=`\n\n【プロジェクト詳細ドキュメント（docs/summary.md）】\n${docs}`;
+  }
+
+  const prompt=`以下のプロジェクト情報を完全に読み込んで、即座に続きから作業を開始してください。追加質問は不要です。
+
+【プロジェクト】${data.project}
+【前回保存日時】${data.savedAt}
+
+【現在の状況・前回やったこと】
+${data.status}
+
+【次にやること】
+${data.next}
+
+【重要な設定・メモ】
+${data.memo}${docsContent}
+
+---
+上記を把握した上で「続きから作業を開始します」と宣言し、次のアクションを提案してください。
+セッション終了時は作業内容をJSON形式で出力してください。`;
+
+  document.getElementById('aiPrompt').textContent=prompt;
+}
+
+async function loadHistory(){
+  const projectName=document.getElementById('projectName').value.trim();
+  const history=await getAllHistory();
+  const filtered=projectName?history.map((h,i)=>({h,i})).filter(({h})=>h.project===projectName):history.map((h,i)=>({h,i}));
+  const list=document.getElementById('historyList');
+  list.innerHTML='';
+  if(filtered.length===0){list.textContent='履歴なし';return;}
+  filtered.forEach(({h,i})=>{
+    const div=document.createElement('div');div.className='history-item';
+    const text=document.createElement('span');text.className='history-text';
+    text.textContent=`${h.savedAt}　${h.project}　→ ${(h.next||'').substring(0,30)}${(h.next||'').length>30?'...':''}`;
+    text.onclick=()=>{
+      document.getElementById('projectName').value=h.project||'';
+      document.getElementById('currentStatus').value=h.status||'';
+      document.getElementById('nextAction').value=h.next||'';
+      document.getElementById('memo').value=h.memo||'';
+      document.getElementById('docsUrl').value=h.docsUrl||'';
+      setEditMode(i,`${h.project} (${h.savedAt})`);
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
+    const btnEdit=document.createElement('button');btnEdit.className='btn-edit';btnEdit.textContent='✏️ 編集';
+    btnEdit.onclick=()=>{
+      document.getElementById('projectName').value=h.project||'';
+      document.getElementById('currentStatus').value=h.status||'';
+      document.getElementById('nextAction').value=h.next||'';
+      document.getElementById('memo').value=h.memo||'';
+      document.getElementById('docsUrl').value=h.docsUrl||'';
+      setEditMode(i,`${h.project} (${h.savedAt})`);
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
+    const btnDel=document.createElement('button');btnDel.className='btn-delete';btnDel.textContent='🗑 削除';
+    btnDel.onclick=(e)=>{e.stopPropagation();deleteEntry(i);};
+    div.appendChild(text);div.appendChild(btnEdit);div.appendChild(btnDel);
+    list.appendChild(div);
+  });
+}
+
+function copyPrompt(){
+  const text=document.getElementById('aiPrompt').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    document.getElementById('copyStatus').className='status';
+    document.getElementById('copyStatus').textContent='✅ コピーしました！新しいセッションに貼り付けてください。';
+  });
+}
+
+window.onload=loadSetting;
+</script>
+</body>
+</html>
