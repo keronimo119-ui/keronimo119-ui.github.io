@@ -16,75 +16,119 @@ hr{margin:48px 0;border:none;border-top:1px solid #ddd}
 <p><a href="#en">English is below.</a></p>
 
 <h1>プライバシーポリシー</h1>
-<p class="date">アプリ名: イツデコオシカ（英語名: ItsCal）<br>最終更新日: 2026年11月6日</p>
+<p class="date">アプリ名: イツデコオシカ（英語名: ItsCal）<br>最終更新日: 2026年11月12日</p>
 
 <p>本アプリ「イツデコオシカ」(以下「本アプリ」)は、利用者のプライバシーを尊重し、個人情報の保護に努めます。</p>
 
 <h2>1. 収集する情報</h2>
-<p>本アプリ自体は、利用者の個人情報(氏名、メールアドレス、位置情報など)を収集・送信しません。</p>
-<p>利用者が本アプリに登録した内容(予定、カレンダーのデザイン、シール、背景画像、切り抜いた画像などのデータ)は、利用者の端末内に保存され、開発者のサーバーへ送信されることはありません。</p>
+<p>開発者が、利用者の氏名・メールアドレス・電話番号を求めたり、GPS などで正確な位置情報を取得したりすることはありません。会員登録やログインもありません。広告・共有・写真の切り抜きの機能で Google が受け取る情報は、それぞれの項をご覧ください(広告では、IP アドレスからおおよその地域が推定されることがあります)。</p>
+<p>利用者が本アプリに登録した内容(予定、カレンダーのデザイン、シール、背景画像、切り抜いた画像など)は、利用者の端末内に保存されます。ただし、「共有」の機能を使ったカレンダーに限り、「2. カレンダーの共有」に書いた情報をサーバーへ送ります。共有を使わない限り、予定が開発者の使うサーバー(Firebase)へ送られることはありません(Android のバックアップについては「6. バックアップ」をご覧ください)。</p>
 
-<h2>2. 写真の読み込み</h2>
-<p>背景画像・シール・切り抜きなどの機能で写真を使う際、利用者が選んだ写真のみを読み込みます。読み込んだ写真は端末内にのみ保存され、外部に送信されません。</p>
+<h2>2. カレンダーの共有</h2>
+<p>本アプリには、カレンダーを家族や友人と共有する機能があります。共有を始めたカレンダー、または招待を受けて参加したカレンダーについてのみ、Google LLC が提供する Firebase(Cloud Firestore・Firebase Authentication・App Check)を通じて、次の情報を送信・保存します。</p>
+<ul>
+<li><strong>送る情報:</strong> そのカレンダーの予定(日付・題名・メモ・開始と終了の時刻・終日かどうか)、日のマーク(絵文字と、アプリに用意されたシール)、日付の強調、カレンダーの名前、更新した時刻。</li>
+<li><strong>送らない情報:</strong> 背景の画像、自分で取り込んだ画像のシールや手描きのシール、デザインの設定、共有していないほかのカレンダーの内容。</li>
+<li><strong>端末ごとの番号:</strong> 共有を使うと、Firebase Authentication が端末(アプリ)ごとに番号を1つ発行します。匿名の認証で、氏名やメールアドレスとは結び付きません。参加の記録はこの番号で管理します。</li>
+<li><strong>不正利用の防止:</strong> 本アプリ以外からの読み書きを防ぐため、App Check が Google Play の仕組み(Play Integrity)を使って、アプリと端末が正規のものかを確かめます。また Firebase は、不正利用の防止のために通信元の IP アドレスなどを受け取ります。</li>
+<li><strong>見られる人:</strong> 共有の予定は、そのカレンダーに参加している全員が見て、書き換えられます。招待(リンク・合言葉)を知っている人はだれでも参加できるため、招待は共有したい相手にだけ送ってください。招待を作り直すと、古い招待では参加できなくなります(すでに参加している人はそのまま)。</li>
+<li><strong>保存場所:</strong> 共有の予定などは Google のサーバー(東京)に保存され、通信は暗号化(HTTPS)されます。開発者は、サービスの運用・不具合の調査・削除の依頼への対応に必要な場合を除き、共有の内容を閲覧しません。</li>
+<li><strong>招待リンク:</strong> 招待リンクを開くと、案内のページ(GitHub, Inc. の GitHub Pages)が表示されることがあります。合言葉はリンクの「#」より後ろにあり、ページのサーバーには送られません。GitHub はページの表示のために IP アドレスなどを記録することがあります。</li>
+</ul>
+<p>詳細は <a href="https://firebase.google.com/support/privacy" target="_blank">Firebase のプライバシーとセキュリティ</a> をご確認ください。</p>
+
+<h2>3. 共有したデータの削除</h2>
+<ul>
+<li>参加した人が「共有をやめる」と、その人の参加の記録をサーバーから消し、以後は同期しません(通信できないときは、参加の記録がサーバーに残ることがあります。予定の内容は含みません)。手元の予定は残ります。その人が書いた予定はほかの参加者との共有に残り、共有を始めた人が共有を終了するまでサーバーに保存されます。</li>
+<li>共有を始めた人が「共有を終了する」と、そのカレンダーの予定・日のマーク・日付の強調・名前がサーバーから消えます。全員の手元の予定は残り、ふつうのカレンダーに戻ります。</li>
+<li>共有中に予定を消すと、サーバー上のその予定の題名・メモも消え、日付と「消した」という印だけが残ります(ほかの端末からも消すため)。</li>
+<li>共有を終了したあとも、共有の番号・作った時刻・終了の印・招待の鍵・持ち主の鍵・持ち主と参加者の記録(端末ごとの番号)はサーバーに残ります。これらに予定の内容は含まれません。</li>
+<li>共有を終了しないままアプリを削除した場合など、サーバーの予定を消したいときは、そのカレンダーの招待の合言葉を添えて「10. お問い合わせ」の連絡先へご依頼ください。開発者が削除します。</li>
+</ul>
+
+<h2>4. 写真の読み込み</h2>
+<p>背景画像・シール・切り抜きなどの機能で写真を使う際、利用者が選んだ写真のみを読み込みます。読み込んだ写真は端末内にのみ保存され、外部に送信されません(「6. バックアップ」の Android のバックアップを除きます)。</p>
 <p>写真から人物などを自動で切り抜く機能には、Google の ML Kit を使用しています。切り抜きの処理は端末内で行われ、写真が外部に送信されることはありません。ML Kit は、機能を動かすための部品の取得や不具合の調査のために、Google へ利用状況などの情報を送ることがあります。詳細は <a href="https://developers.google.com/ml-kit/terms" target="_blank">ML Kit の利用規約</a> をご確認ください。</p>
 
-<h2>3. 広告について</h2>
-<p>本アプリは、Google LLC が提供する広告配信サービス「Google AdMob」を利用しています。AdMob は広告配信のために、広告識別子(広告ID)などの情報を自動的に取得する場合があります。欧州経済領域・英国・スイスの利用者には、広告の表示前に同意の確認画面を表示します。同意の内容は、本アプリの設定画面からいつでも変更できます。詳細は以下をご確認ください。</p>
+<h2>5. 広告について</h2>
+<p>本アプリは、Google LLC が提供する広告配信サービス「Google AdMob」を利用しています。AdMob は広告の配信・効果の測定・不正防止のために、広告識別子(広告ID)、IP アドレス(おおよその地域の推定に使われることがあります)、広告の表示やタップなどの操作の情報を自動的に取得する場合があります。欧州経済領域・英国・スイスの利用者には、広告の表示前に同意の確認画面を表示します。同意の内容は、本アプリの設定画面からいつでも変更できます。詳細は以下をご確認ください。</p>
 <ul>
 <li><a href="https://policies.google.com/privacy" target="_blank">Google プライバシーポリシー</a></li>
 <li><a href="https://support.google.com/admob/answer/6128543" target="_blank">AdMob のデータ収集について</a></li>
 </ul>
 
-<h2>4. バックアップ</h2>
-<p>本アプリのデータは、端末の設定で Android の自動バックアップが有効になっている場合、利用者自身の Google アカウントにバックアップされることがあります。これは Android の標準機能であり、開発者がその内容を見ることはできません。</p>
+<h2>6. バックアップ</h2>
+<p>本アプリのデータは、端末の設定で Android の自動バックアップが有効になっている場合、利用者自身の Google アカウントにバックアップされることがあります。共有中のカレンダーの控え(共有の番号・合言葉など)も含まれます。これは Android の標準機能であり、開発者がその内容を見ることはできません。</p>
 
-<h2>5. データの削除</h2>
-<p>本アプリのデータは端末内に保存されているため、アプリをアンインストールすることで削除されます。</p>
+<h2>7. データの削除</h2>
+<p>端末内のデータは、アプリをアンインストールすることで削除されます。サーバーに保存された共有のデータについては「3. 共有したデータの削除」をご覧ください。</p>
 
-<h2>6. 子どものプライバシー</h2>
+<h2>8. 子どものプライバシー</h2>
 <p>本アプリは13歳未満の子どもから故意に個人情報を収集することはありません。</p>
 
-<h2>7. ポリシーの変更</h2>
+<h2>9. ポリシーの変更</h2>
 <p>本ポリシーは必要に応じて改定されることがあります。重要な変更がある場合は、本ページにて告知します。</p>
 
-<h2>8. お問い合わせ</h2>
+<h2>10. お問い合わせ</h2>
 <p>本ポリシーに関するお問い合わせは、Google Play ストアの本アプリ掲載ページに記載のデベロッパー連絡先までお願いします。</p>
 
 <hr>
 
 <h1 id="en">Privacy Policy</h1>
-<p class="date">App name: ItsCal (Japanese name: イツデコオシカ)<br>Last updated: November 6, 2026</p>
+<p class="date">App name: ItsCal (Japanese name: イツデコオシカ)<br>Last updated: November 12, 2026</p>
 
 <p>ItsCal (the "App") respects your privacy and is committed to protecting your personal information.</p>
 
 <h2>1. Information We Collect</h2>
-<p>The App itself does not collect or transmit your personal information (such as your name, email address, or location).</p>
-<p>Everything you create in the App (events, calendar designs, stickers, background images, cutout images, and other data) is stored on your device and is never sent to the developer's servers.</p>
+<p>The developer does not ask for your name, email address, or phone number, and does not obtain your precise location (for example, through GPS). There is no sign-up or login. For the information Google receives through advertising, sharing, and photo cutouts, see those sections (for advertising, your general location may be estimated from your IP address).</p>
+<p>Everything you create in the App (events, calendar designs, stickers, background images, cutout images, and so on) is stored on your device. However, for a calendar for which you use the Share feature, the information described in "2. Calendar Sharing" is sent to a server. Unless you use sharing, your events are never sent to the servers used by the developer (Firebase). For Android's own backup, see "6. Backup."</p>
 
-<h2>2. Photos</h2>
-<p>When you use photos for backgrounds, stickers, or cutouts, the App reads only the photos you choose. These photos are stored only on your device and are not sent anywhere.</p>
+<h2>2. Calendar Sharing</h2>
+<p>The App lets you share a calendar with family and friends. The App sends and stores the following information through Firebase (Cloud Firestore, Firebase Authentication, and App Check), provided by Google LLC, only for a calendar that you have started sharing or that you have joined through an invite.</p>
+<ul>
+<li><strong>What is sent:</strong> that calendar's events (date, title, memo, start and end times, and whether the event is all-day), day marks (emoji and the stickers built into the App), date highlights, the calendar's name, and when each item was last updated.</li>
+<li><strong>What is not sent:</strong> background images, stickers made from your own images or drawn by hand, design settings, and the contents of any other calendar you are not sharing.</li>
+<li><strong>Per-device ID:</strong> When you use sharing, Firebase Authentication issues one ID for each device (app installation). This is anonymous sign-in and is not linked to your name or email address. Membership in a shared calendar is managed with this ID.</li>
+<li><strong>Abuse prevention:</strong> To block access from anything other than the App, App Check uses Google Play's Play Integrity service to verify that the App and the device are genuine. Firebase also receives information such as your IP address to prevent abuse.</li>
+<li><strong>Who can see it:</strong> Everyone who has joined a shared calendar can see and edit its events. Anyone who has the invite (link or invite code) can join, so please send invites only to the people you want to share with. If you make a new invite, earlier invites can no longer be used to join (people who have already joined stay in).</li>
+<li><strong>Where it is stored:</strong> Shared events and related data are stored on Google's servers in Tokyo, Japan, and are encrypted in transit (HTTPS). The developer does not view shared content except when necessary to operate the service, investigate problems, or handle a deletion request.</li>
+<li><strong>Invite links:</strong> Opening an invite link may show a guide page hosted on GitHub Pages (operated by GitHub, Inc.). The invite code is in the part of the link after "#", which is not sent to the page's server. GitHub may record information such as your IP address in order to serve the page.</li>
+</ul>
+<p>For details, see <a href="https://firebase.google.com/support/privacy" target="_blank">Privacy and Security in Firebase</a>.</p>
+
+<h2>3. Deleting Shared Data</h2>
+<ul>
+<li>When a member taps "Stop sharing," their membership record is removed from the server and the calendar stops syncing (if the device cannot connect at that time, the membership record may remain on the server; it does not contain any event content). Their events stay on their device. Events they added remain shared with the other members and stay on the server until the person who started sharing ends sharing.</li>
+<li>When the person who started sharing taps "End sharing," the calendar's events, day marks, date highlights, and name are deleted from the server. Everyone keeps the events on their own device, and the calendar becomes a regular calendar again.</li>
+<li>When you delete an event while sharing, its title and memo are also removed from the server; only its date and a "deleted" flag remain (so that it is also removed from other devices).</li>
+<li>After sharing ends, the share ID, creation time, "ended" flag, invite key, owner key, and owner and membership records (per-device IDs) remain on the server. They do not contain any event content.</li>
+<li>If you want shared events removed from the server in another situation (for example, you uninstalled the App without ending sharing), please contact us as described in "10. Contact," including that calendar's invite code. The developer will delete them.</li>
+</ul>
+
+<h2>4. Photos</h2>
+<p>When you use photos for backgrounds, stickers, or cutouts, the App reads only the photos you choose. These photos are stored only on your device and are not sent anywhere (except by Android's backup described in "6. Backup").</p>
 <p>The automatic cutout feature uses Google ML Kit. Cutouts are processed on your device, and your photos are not sent anywhere. ML Kit may send usage information to Google in order to download the components it needs and to diagnose problems. For details, see the <a href="https://developers.google.com/ml-kit/terms" target="_blank">ML Kit Terms of Service</a>.</p>
 
-<h2>3. Advertising</h2>
-<p>The App uses Google AdMob, an advertising service provided by Google LLC. AdMob may automatically collect information such as your advertising ID in order to show ads. Users in the European Economic Area, the United Kingdom, and Switzerland are asked for consent before ads are shown, and can change their choice at any time from the App's settings. For details, see:</p>
+<h2>5. Advertising</h2>
+<p>The App uses Google AdMob, an advertising service provided by Google LLC. AdMob may automatically collect information such as your advertising ID, your IP address (which may be used to estimate your general location), and your interactions such as ad views and taps, in order to show ads, measure their performance, and prevent fraud. Users in the European Economic Area, the United Kingdom, and Switzerland are asked for consent before ads are shown, and can change their choice at any time from the App's settings. For details, see:</p>
 <ul>
 <li><a href="https://policies.google.com/privacy" target="_blank">Google Privacy Policy</a></li>
 <li><a href="https://support.google.com/admob/answer/6128543" target="_blank">How AdMob collects data</a></li>
 </ul>
 
-<h2>4. Backup</h2>
-<p>If Android Auto Backup is turned on in your device settings, the App's data may be backed up to your own Google account. This is a standard Android feature, and the developer cannot see its contents.</p>
+<h2>6. Backup</h2>
+<p>If Android Auto Backup is turned on in your device settings, the App's data may be backed up to your own Google account. This includes the sharing records of shared calendars (such as the share ID and invite code). This is a standard Android feature, and the developer cannot see its contents.</p>
 
-<h2>5. Deleting Your Data</h2>
-<p>All App data is stored on your device and is deleted when you uninstall the App.</p>
+<h2>7. Deleting Your Data</h2>
+<p>Data stored on your device is deleted when you uninstall the App. For shared data stored on the server, see "3. Deleting Shared Data."</p>
 
-<h2>6. Children's Privacy</h2>
+<h2>8. Children's Privacy</h2>
 <p>The App does not knowingly collect personal information from children under the age of 13.</p>
 
-<h2>7. Changes to This Policy</h2>
+<h2>9. Changes to This Policy</h2>
 <p>This policy may be updated as needed. Any significant changes will be announced on this page.</p>
 
-<h2>8. Contact</h2>
+<h2>10. Contact</h2>
 <p>For questions about this policy, please use the developer contact information on the App's Google Play Store page.</p>
 </body>
 </html>
