@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.keronimo119ui.calendar",
+      "sha256_cert_fingerprints": [
+        "D7:70:08:F2:2F:E2:62:59:D5:15:8B:5D:1A:1C:77:05:0D:16:39:37:59:2C:96:43:79:AD:BA:9C:8B:EF:AC:22",
+        "02:93:CA:E2:5A:02:94:86:7E:1B:58:93:98:05:E0:CD:14:8C:62:D6:E5:DA:0D:03:4C:2F:D8:6C:7E:ED:17:2E"
+      ]
+    }
+  }
+]

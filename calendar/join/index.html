@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Calendar invite</title>
+<style>
+  :root { color-scheme: light dark; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #fff; color: #1a1a1a; font-family: sans-serif; font-size: 18px; line-height: 1.6; }
+  main { box-sizing: border-box; max-width: 480px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 24px; margin: 8px 0 16px; }
+  h2 { font-size: 20px; margin: 28px 0 8px; }
+  p, ol { margin: 0 0 16px; }
+  ol { padding-left: 1.4em; }
+  li { margin-bottom: 8px; }
+  .btn { display: block; box-sizing: border-box; width: 100%; min-height: 52px; padding: 12px 16px; margin: 0 0 12px; border: 2px solid #0b3d91; border-radius: 8px; background: transparent; color: #0b3d91; font-size: 18px; font-family: inherit; text-align: center; text-decoration: none; cursor: pointer; }
+  .btn.primary { background: #0b3d91; color: #fff; }
+  .btn.sub { border-color: #888; color: #444; font-size: 18px; }
+  #code { box-sizing: border-box; width: 100%; margin: 0 0 12px; padding: 12px; border: 1px solid #888; border-radius: 8px; background: #f3f3f3; color: #1a1a1a; font-family: monospace; font-size: 18px; word-break: break-all; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
+  #copied { margin: 0 0 16px; }
+  [hidden] { display: none !important; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #121212; color: #eee; }
+    .btn { border-color: #8ab4f8; color: #8ab4f8; }
+    .btn.primary { background: #1e4fb0; color: #fff; border-color: #1e4fb0; }
+    .btn.sub { border-color: #888; color: #ccc; }
+    #code { background: #1e1e1e; color: #eee; border-color: #666; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <noscript>
+    <p>このページを使うには JavaScript をオンにしてください。</p>
+    <p>Please turn on JavaScript to use this page.</p>
+  </noscript>
+  <h1 id="title"></h1>
+  <p id="desc"></p>
+  <div id="valid" hidden>
+    <a id="open" class="btn primary" href="#" hidden></a>
+    <p id="notAndroid" hidden></p>
+    <h2 id="fbTitle"></h2>
+    <ol id="steps"></ol>
+    <div id="code" role="textbox" aria-readonly="true"></div>
+    <button id="copy" type="button" class="btn"></button>
+    <p id="copied" role="status"></p>
+  </div>
+  <a id="play" class="btn sub" href="#"></a>
+</main>
+<script>
+(function () {
+  var PKG = 'io.github.keronimo119ui.calendar';
+  var PLAY = 'https://play.google.com/store/apps/details?id=' + PKG;
+  var langs = navigator.languages && navigator.languages[0];
+  var lang = langs || navigator.language || '';
+  var ja = /^ja/i.test(lang);
+  var T = ja ? {
+    title: 'カレンダーへの招待',
+    head: 'カレンダーへの招待',
+    desc: 'イツデコオシカ（カレンダーのアプリ）の共有カレンダーに招待されています。',
+    bad: '招待の合言葉が見つかりませんでした。届いた招待のメッセージのリンクを、そのまま開き直してください。',
+    open: 'アプリで開いて参加する',
+    notAndroid: 'このページは Android のスマホで開いてください。',
+    fb: 'アプリが開かないとき',
+    steps: ['下のボタンで合言葉をコピーします。', 'アプリを開き、◀ と ▶ の間のカレンダー名を押して「招待の合言葉で参加」を選びます。', '「貼り付け」を押してから「参加する」を押します。'],
+    copy: '合言葉をコピー',
+    ok: 'コピーしました',
+    ng: 'コピーできませんでした。上の合言葉を長押しして選んでください。',
+    play: 'アプリを入れていない方は Google Play へ'
+  } : {
+    title: 'Calendar invite',
+    head: "You're invited to a calendar",
+    desc: "You've been invited to a shared calendar in ItsCal (a calendar app).",
+    bad: "The invite code couldn't be found. Please open the link in the invite message again, exactly as it was sent.",
+    open: 'Open the app and join',
+    notAndroid: 'Please open this page on your Android phone.',
+    fb: "If the app doesn't open",
+    steps: ['Copy the invite code with the button below.', 'Open the app, tap the calendar name between ◀ and ▶, and choose "Join with an invite code".', 'Tap "Paste", then tap "Join".'],
+    copy: 'Copy invite code',
+    ok: 'Copied',
+    ng: "Couldn't copy. Please press and hold the code above to select it.",
+    play: "Don't have the app? Get it on Google Play"
+  };
+  document.documentElement.lang = ja ? 'ja' : 'en';
+  document.title = T.title;
+  var $ = function (id) { return document.getElementById(id); };
+  $('title').textContent = T.head;
+  var play = $('play');
+  play.textContent = T.play;
+  play.href = PLAY;
+
+  var code = (location.hash || '').replace(/^#/, '');
+  var valid = /^[A-Za-z0-9]{10,}\.[A-Za-z0-9]{16,64}$/.test(code);
+  if (!valid) {
+    $('desc').textContent = T.bad;
+    return;
+  }
+  $('desc').textContent = T.desc;
+  $('valid').hidden = false;
+
+  if (/Android/i.test(navigator.userAgent || '')) {
+    var open = $('open');
+    open.hidden = false;
+    open.textContent = T.open;
+    open.href = 'intent://keronimo119-ui.github.io/calendar/join/#Intent;scheme=https;package=' + PKG +
+      ';S.invite=' + code + ';S.browser_fallback_url=' + encodeURIComponent(PLAY) + ';end';
+  } else {
+    var na = $('notAndroid');
+    na.hidden = false;
+    na.textContent = T.notAndroid;
+  }
+
+  $('fbTitle').textContent = T.fb;
+  var ol = $('steps');
+  for (var i = 0; i < T.steps.length; i++) {
+    var li = document.createElement('li');
+    li.textContent = T.steps[i];
+    ol.appendChild(li);
+  }
+  $('code').textContent = code;
+  var copyBtn = $('copy');
+  copyBtn.textContent = T.copy;
+  var msg = $('copied');
+
+  function fallbackCopy() {
+    var ta = document.createElement('textarea');
+    ta.value = code;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '0';
+    ta.style.left = '0';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, code.length);
+    var done = false;
+    try { done = document.execCommand('copy'); } catch (e) { done = false; }
+    document.body.removeChild(ta);
+    return done;
+  }
+  copyBtn.addEventListener('click', function () {
+    function show(ok) { msg.textContent = ok ? T.ok : T.ng; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(function () { show(true); }, function () { show(fallbackCopy()); });
+    } else {
+      show(fallbackCopy());
+    }
+  });
+})();
+</script>
+</body>
+</html>
